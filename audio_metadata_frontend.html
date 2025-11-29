@@ -169,14 +169,26 @@
       margin-top: 4px;
     }
 
-    /* Viewer */
-    #viewerPage iframe {
+    #viewerFrame {
       width: 100%;
       height: 80vh;
       border: none;
       border-radius: var(--radius);
       background: #000;
+      display: none !important;
     }
+
+    /* 🔥 HIDE DOWNLOAD BUTTON FOR AUDIO PLAYER */
+    audio::-internal-media-controls-download-button {
+      display: none;
+    }
+    audio::-webkit-media-controls-enclosure {
+      overflow: hidden;
+    }
+    audio::-webkit-media-controls-panel {
+      padding-right: 0;
+    }
+
   </style>
 </head>
 <body>
@@ -212,12 +224,13 @@
       <div class="back-btn" id="backToSearch">← Back to Search</div>
       <h3 id="viewerTitle"></h3>
       <iframe id="viewerFrame" allowfullscreen></iframe>
+
+      <div id="audioPlayerContainer" style="margin-top:20px;"></div>
     </div>
 
   </div>
 
   <script>
-    // ✅ Backend URL
     const API_BASE = "https://audio_metadata_backend.csewan.workers.dev";
 
     const home = document.getElementById("home");
@@ -233,8 +246,8 @@
     const viewerTitle = document.getElementById("viewerTitle");
     const viewerFrame = document.getElementById("viewerFrame");
     const backToSearch = document.getElementById("backToSearch");
+    const audioContainer = document.getElementById("audioPlayerContainer");
 
-    // Page Navigation
     goUpload.onclick = () => {
       home.classList.add("hidden");
       uploadPage.classList.remove("hidden");
@@ -247,9 +260,9 @@
       viewerPage.classList.add("hidden");
       home.classList.remove("hidden");
       viewerFrame.src = "";
+      audioContainer.innerHTML = "";
     };
 
-    // ✅ Handle Upload
     form.onsubmit = async (e) => {
       e.preventDefault();
       message.textContent = "Uploading...";
@@ -257,7 +270,6 @@
 
       const url = document.getElementById("archive_url").value.trim();
 
-      // ✅ Validate archive.org URLs only
       if (!url.includes("archive.org")) {
         message.textContent = "❌ Only archive.org URLs are allowed!";
         message.className = "error";
@@ -293,7 +305,6 @@
       }
     };
 
-    // ✅ Handle Search (hide phone number)
     searchBtn.onclick = async () => {
       const query = searchInput.value.trim();
       if (!query) return alert("Please enter title, username, or ID to search!");
@@ -331,11 +342,53 @@
         `).join("");
 
         document.querySelectorAll(".result-card").forEach(card => {
-          card.onclick = () => {
+          card.onclick = async () => {
             const url = card.dataset.url;
             const title = card.dataset.title;
+
             viewerTitle.textContent = title;
-            viewerFrame.src = url;
+            viewerFrame.src = "";
+            audioContainer.innerHTML = "Loading audio...";
+
+            let identifier = "";
+            try {
+              const parts = url.split("/details/");
+              if (parts.length > 1) {
+                identifier = parts[1].split("/")[0].trim();
+              }
+            } catch {}
+
+            if (!identifier) {
+              audioContainer.innerHTML = "<p style='color:red'>Invalid archive URL</p>";
+              return;
+            }
+
+            try {
+              const metaRes = await fetch(`https://archive.org/metadata/${identifier}`);
+              const meta = await metaRes.json();
+
+              const files = meta.files || [];
+              const mp3 = files.filter(f =>
+                f.name.endsWith(".mp3") || (f.format && f.format.toLowerCase().includes("mp3"))
+              );
+
+              if (mp3.length === 0) {
+                audioContainer.innerHTML = "<p style='color:orange'>No MP3 files found.</p>";
+              } else {
+                const mp3url = `https://archive.org/download/${identifier}/${mp3[0].name}`;
+
+                audioContainer.innerHTML = `
+                  <audio controls style="width:100%; margin-top:10px;">
+                    <source src="${mp3url}" type="audio/mpeg">
+                    Your browser does not support audio playback.
+                  </audio>
+                  <p style='margin-top:10px; font-size:0.9rem;'>MP3 File: ${mp3[0].name}</p>
+                `;
+              }
+            } catch (err) {
+              audioContainer.innerHTML = "<p style='color:red'>Error loading metadata.</p>";
+            }
+
             home.classList.add("hidden");
             viewerPage.classList.remove("hidden");
           };
