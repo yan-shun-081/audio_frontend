@@ -24,7 +24,6 @@
       scroll-behavior: smooth;
     }
 
-    /* Glassmorphism */
     .glass {
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(12px);
@@ -38,7 +37,6 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
     }
 
-    /* Fade & glow effects */
     .fade-in {
       opacity: 0;
       transform: translateY(15px);
@@ -74,7 +72,6 @@
       background: #0f172a;
     }
 
-    /* === ULTRA-SLIM TRAIN ANIMATION === */
     .train-container {
       position: relative;
       width: 100%;
@@ -147,13 +144,27 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* MOBILE */
     @media (max-width: 640px) {
       h1 { font-size: 1.8rem; }
       h2 { font-size: 1.25rem; }
       iframe { height: 350px !important; }
       .train-container { height: 22px; }
       .car { width: 50px; height: 12px; }
+    }
+
+    /* FULLSCREEN BUTTON */
+    .fs-btn {
+      cursor: pointer;
+      background: rgba(255,255,255,0.1);
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      display: inline-block;
+      transition: 0.2s;
+    }
+    .fs-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: scale(1.05);
     }
   </style>
 </head>
@@ -179,14 +190,17 @@
   <!-- SECTION 1: SEARCH & UPLOAD -->
   <section id="metadata" class="w-full max-w-5xl glass p-6 fade-in">
     <h2 class="text-2xl font-semibold text-blue-300 mb-4">🎤 Search & Upload Here</h2>
-    <iframe src="audio_metadata_frontend.html" class="h-[450px] bg-slate-900"></iframe>
+
+    <!-- FULLSCREEN BUTTON -->
+    <div class="fs-btn" onclick="openFullscreen('frame1')">⛶ Fullscreen</div>
+
+    <iframe id="frame1" src="audio_metadata_frontend.html" class="h-[450px] bg-slate-900"></iframe>
   </section>
 
   <!-- SECTION 2: AUDIO DISPLAY + MINI TRAIN -->
   <section id="audios" class="w-full max-w-5xl glass p-6 fade-in">
     <h2 class="text-2xl font-semibold text-blue-300 mb-4">🚆 Enjoy the Journey of Audio</h2>
 
-    <!-- Ultra-Slim Train Animation -->
     <div class="train-container mb-4">
       <div class="train-track"></div>
       <div class="train">
@@ -205,14 +219,25 @@
       </div>
     </div>
 
-    <!-- Embedded Audio Display -->
-    <iframe src="audio_displaying_frontend.html" class="h-[500px] bg-slate-900"></iframe>
+    <!-- FULLSCREEN BUTTON -->
+    <div class="fs-btn" onclick="openFullscreen('frame2')">⛶ Fullscreen</div>
+
+    <iframe id="frame2" src="audio_displaying_frontend.html" class="h-[500px] bg-slate-900"></iframe>
   </section>
 
   <!-- FOOTER -->
   <footer class="text-slate-500 text-sm mt-8 fade-in text-center pb-6">
     <p>© 2025 Free Audio Content · Built with ❤️ by <span class="text-blue-400 font-semibold">YAN</span></p>
   </footer>
+
+  <script>
+    function openFullscreen(id) {
+      const frame = document.getElementById(id);
+      if (frame.requestFullscreen) frame.requestFullscreen();
+      else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+      else if (frame.msRequestFullscreen) frame.msRequestFullscreen();
+    }
+  </script>
 
 </body>
 </html>
